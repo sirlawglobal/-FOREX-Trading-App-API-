@@ -1,98 +1,188 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# FX Trading App Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS-based backend for an FX Trading App where users can trade currencies, including Naira (NGN) and other international currencies.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- **User Registration & Email Verification**: Users register with email and receive OTP for verification.
+- **Multi-Currency Wallet**: Supports balances in NGN, USD, EUR, GBP, etc.
+- **FX Rate Integration**: Fetches real-time rates from exchangerate-api.com, cached in-memory.
+- **Currency Conversion & Trading**: Convert/trade NGN ↔ other currencies using live rates.
+- **Transaction History**: Logs all funding, conversions, and trades.
+- **Security**: JWT authentication, input validation, atomic transactions.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+- **Framework**: NestJS
+- **ORM**: TypeORM
+- **Database**: PostgreSQL (configurable to MySQL)
+- **Authentication**: JWT with Passport
+- **Email**: Nodemailer (Gmail SMTP)
+- **Caching**: In-memory cache for FX rates
+- **Testing**: Jest with unit and e2e tests
 
-```bash
-$ npm install
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js (v18+)
+- PostgreSQL (or MySQL)
+- Gmail account for SMTP (or configure another provider)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repo-url>
+   cd fx-tradding-app
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables. Create a `.env` file in the root directory:
+   ```env
+   DATABASE_HOST=localhost
+   DATABASE_PORT=5432
+   DATABASE_USERNAME=your_username
+   DATABASE_PASSWORD=your_password
+   DATABASE_NAME=fx_trading_db
+
+   JWT_SECRET=your_jwt_secret
+
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
+   EMAIL_USER=your_email@gmail.com
+   EMAIL_PASS=your_app_password
+
+   FX_API_KEY=your_exchangerate_api_key  # From https://www.exchangerate-api.com
+   ```
+
+4. Run database migrations (if using TypeORM CLI):
+   ```bash
+   npm run build
+   npx typeorm migration:run
+   ```
+
+5. Start the application:
+   ```bash
+   # Development
+   npm run start:dev
+
+   # Production
+   npm run build
+   npm run start:prod
+   ```
+
+The app will run on `http://localhost:3000`. Swagger docs at `http://localhost:3000/api`.
+
+## Key Assumptions
+
+- Users start with 0 balance in all currencies.
+- FX rates are cached for 1 hour to reduce API calls.
+- Supported currencies: NGN, USD, EUR, GBP, CAD.
+- Conversions use base currency (NGN) for cross-currency trades.
+- Email verification is required before trading.
+- Transactions are atomic to prevent race conditions.
+- Insufficient balance prevents conversions.
+- OTP expires in 5 minutes.
+
+## API Documentation
+
+### Authentication Endpoints
+
+- `POST /auth/register` - Register user and send OTP email.
+- `POST /auth/verify` - Verify OTP and activate account.
+- `POST /auth/resend-otp` - Resend OTP.
+- `POST /auth/login` - Login and get JWT token.
+- `POST /auth/logout` - Logout (client-side token removal).
+
+### Wallet Endpoints
+
+- `GET /wallet` - Get all wallet balances (optional ?currency=NGN filter).
+- `POST /wallet/fund` - Fund wallet in NGN or other currencies.
+- `POST /wallet/convert` - Convert between currencies.
+- `POST /wallet/trade` - Trade NGN with other currencies (alias for convert).
+- `GET /wallet/transactions` - Get transaction history.
+
+### FX Endpoints
+
+- `GET /fx/rates` - Get current FX rates (filtered to supported pairs).
+
+### Example Requests
+
+Register:
+```json
+POST /auth/register
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
 ```
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+Verify:
+```json
+POST /auth/verify
+{
+  "email": "user@example.com",
+  "otp": "123456"
+}
 ```
 
-## Run tests
+Fund Wallet:
+```json
+POST /wallet/fund
+{
+  "currency": "NGN",
+  "amount": 10000
+}
+```
+
+Convert:
+```json
+POST /wallet/convert
+{
+  "fromCurrency": "NGN",
+  "toCurrency": "USD",
+  "amount": 1000
+}
+```
+
+## Architectural Decisions
+
+- **Modular Structure**: Separate modules for Auth, Wallet, FX.
+- **Entity Design**: User, WalletBalance, Transaction entities with TypeORM.
+- **Service Layer**: Business logic in services, controllers handle HTTP.
+- **Validation**: Class-validator for DTOs.
+- **Error Handling**: Global exception filters.
+- **Caching**: In-memory for FX rates; Redis optional for scalability.
+- **Security**: Bcrypt for passwords, JWT for auth, guards for protected routes.
+- **Database**: PostgreSQL for transactions; indexes on user_id, currency.
+- **Scalability**: Stateless design, easy to add microservices or Redis.
+
+## Running Tests
 
 ```bash
-# unit tests
-$ npm run test
+# All tests
+npm test
 
-# e2e tests
-$ npm run test:e2e
+# E2E tests
+npm run test:e2e
 
-# test coverage
-$ npm run test:cov
+# Coverage
+npm run test:cov
 ```
+
+All 21 tests pass, covering services, controllers, and auth.
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- Use Docker for containerization.
+- Configure environment variables for production.
+- Set up database backups and monitoring.
+- For high traffic, add Redis caching and load balancing.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
