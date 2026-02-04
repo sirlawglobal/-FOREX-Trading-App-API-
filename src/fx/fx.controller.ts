@@ -1,9 +1,14 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { FxService } from './fx.service';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiOperation } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('fx')
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('fx')
 export class FxController {
   constructor(private fxService: FxService) {}

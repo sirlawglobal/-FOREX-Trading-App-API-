@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 // import { AuthModule } from './auth/auth.module';
 import { WalletModule } from './wallet/wallet.module';
 import { FxModule } from './fx/fx.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -28,6 +29,8 @@ import { FxModule } from './fx/fx.module';
     WalletModule,
 
     FxModule,
+
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

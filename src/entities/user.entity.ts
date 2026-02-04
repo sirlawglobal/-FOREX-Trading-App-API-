@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import { Role } from '../auth/roles.enum';
 import { WalletBalance } from './wallet-balance.entity';
 import { Transaction } from './transaction.entity';
 
@@ -15,6 +16,9 @@ export class User {
 
   @Column({ default: false })
   isVerified: boolean;
+
+  @Column({ type: 'enum', enum: Role, default: Role.USER })
+  role: Role;
 
   @Column({ type: 'text', nullable: true })
   otp: string | null;

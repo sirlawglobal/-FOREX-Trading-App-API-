@@ -1,18 +1,17 @@
-// import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
-// import { WalletService } from './wallet.service';
-// import { AuthGuard } from '../auth/auth.guard';
-// import { FundDto } from './dto/fund.dto';
-// import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+
 
 import { Controller, Get, Post, Body, UseGuards, Req, Query } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 import { FundDto } from './dto/fund.dto';
 import { ConvertDto } from './dto/convert.dto';
 import { ApiTags, ApiBearerAuth, ApiQuery, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('wallet')
-@UseGuards(AuthGuard) // Only verified users
+@UseGuards(AuthGuard, RolesGuard) // Auth + Role check
 @ApiBearerAuth() // For Swagger
 @Controller('wallet')
 export class WalletController {
@@ -23,6 +22,7 @@ export class WalletController {
 //     return this.walletService.getBalances(req.user.id);
 //   }
 
+@Roles(Role.USER)
 @Get()
   @ApiQuery({ name: 'currency', required: false, description: 'Filter by currency (e.g., NGN)' })
   async getBalances(@Req() req, @Query('currency') currency?: string) {
@@ -32,11 +32,13 @@ export class WalletController {
     return this.walletService.getBalances(req.user.id);
   }
 
+  @Roles(Role.USER)
   @Post('fund')
   async fund(@Req() req, @Body() dto: FundDto) {
     return this.walletService.fund(req.user.id, dto);
   }
 
+  @Roles(Role.USER)
   @Post('convert')
   @ApiOperation({ summary: 'Convert between any two currencies using real-time rates' })
   @ApiResponse({ status: 200, description: 'Conversion successful' })
@@ -46,6 +48,7 @@ export class WalletController {
     return this.walletService.convert(userId, dto);
   }
 
+  @Roles(Role.USER)
   @Post('trade')
   @ApiOperation({ summary: 'Trade NGN with other currencies (alias for convert)' })
   async trade(@Req() req, @Body() dto: ConvertDto) {
@@ -53,6 +56,7 @@ export class WalletController {
     return this.walletService.convert(req.user.id, dto);
   }
 
+@Roles(Role.USER)
 @Get('transactions')
 async getTransactions(@Req() req) {
   return this.walletService.getTransactions(req.user.id);

@@ -11,7 +11,7 @@ A NestJS-based backend for an FX Trading App where users can trade currencies, i
 - **FX Rate Integration**: Fetches real-time rates from exchangerate-api.com, cached in-memory.
 - **Currency Conversion & Trading**: Convert/trade NGN ↔ other currencies using live rates.
 - **Transaction History**: Logs all funding, conversions, and trades.
-- **Security**: JWT authentication, input validation, atomic transactions.
+- **Security**: JWT authentication, input validation, atomic transactions, role-based access control (RBAC).
 
 ## Tech Stack
 
@@ -154,6 +154,15 @@ The application follows a modular architecture with clear separation of concerns
 ### FX Endpoints
 
 - `GET /fx/rates` - Get current FX rates (filtered to supported pairs).
+
+### Admin Endpoints (Requires ADMIN role)
+
+- `GET /admin/users` - Get paginated list of users.
+- `GET /admin/users/:id` - Get details of a specific user.
+- `GET /admin/transactions` - Get paginated list of all transactions.
+- `GET /admin/users/:userId/transactions` - Get transactions for a specific user.
+- `POST /admin/currencies` - Add or update a currency (placeholder).
+- `DELETE /admin/users/:id` - Delete a user.
 
 ### Example Requests
 
