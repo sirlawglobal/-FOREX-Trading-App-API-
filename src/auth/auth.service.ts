@@ -57,7 +57,7 @@ export class AuthService {
     user.otpExpiresAt = null;
     await this.userRepo.save(user);
 
-    const payload = { sub: user.id, email: user.email, isVerified: true };
+    const payload = { sub: user.id, email: user.email, isVerified: true, role: user.role };
     const token = this.jwt.sign(payload);
     return { token, message: 'Verified' };
   }
@@ -103,7 +103,7 @@ async resendOtp(email: string) {
       throw new BadRequestException('Account not verified');
     }
 
-    const payload = { sub: user.id, email: user.email, isVerified: true };
+    const payload = { sub: user.id, email: user.email, isVerified: true, role: user.role };
     const token = this.jwt.sign(payload);
     return { token, message: 'Logged in' };
   }

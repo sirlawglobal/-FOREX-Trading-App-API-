@@ -146,6 +146,7 @@ describe('AuthService', () => {
         otp: 'hashedOtp',
         otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
         isVerified: false,
+        role: 'user',
       };
       const token = 'jwtToken';
 
@@ -158,7 +159,7 @@ describe('AuthService', () => {
       expect(mockUserRepo.findOneBy).toHaveBeenCalledWith({ email });
       expect(bcrypt.compare).toHaveBeenCalledWith(otp, 'hashedOtp');
       expect(mockUserRepo.save).toHaveBeenCalledWith({ ...user, isVerified: true, otp: null, otpExpiresAt: null });
-      expect(mockJwtService.sign).toHaveBeenCalledWith({ sub: user.id, email: user.email, isVerified: true });
+      expect(mockJwtService.sign).toHaveBeenCalledWith({ sub: user.id, email: user.email, isVerified: true, role: user.role });
       expect(result).toEqual({ token, message: 'Verified' });
     });
 
@@ -170,6 +171,7 @@ describe('AuthService', () => {
         email,
         otp: 'hashedOtp',
         otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        role: 'user',
       };
 
       mockUserRepo.findOneBy.mockResolvedValue(user);
@@ -200,6 +202,62 @@ describe('AuthService', () => {
       mockUserRepo.findOneBy.mockResolvedValue(null);
 
       await expect(service.verify(email, otp)).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('login', () => {
+    it('should login user successfully and return token', async () => {
+      const email = 'test@example.com';
+      const password = 'password123';
+      const user = {
+        id: 'userId',
+        email,
+        password: 'hashedPassword',
+        isVerified: true,
+        role: 'user',
+      };
+      const token = 'jwtToken';
+
+      mockUserRepo.findOneBy.mockResolvedValue(user);
+      mockJwtService.sign.mockReturnValue(token);
+
+      const result = await service.login(email, password);
+
+      expect(mockUserRepo.findOneBy).toHaveBeenCalledWith({ email });
+      expect(bcrypt.compare).toHaveBeenCalledWith(password, 'hashedPassword');
+      expect(mockJwtService.sign).toHaveBeenCalledWith({ sub: user.id, email: user.email, isVerified: true, role: user.role });
+      expect(result).toEqual({ token, message: 'Logged in' });
+    });
+
+    it('should throw BadRequestException for invalid credentials', async () => {
+      const email = 'test@example.com';
+      const password = 'wrongPassword';
+      const user = {
+        id: 'userId',
+        email,
+        password: 'hashedPassword',
+        isVerified: true,
+      };
+
+      mockUserRepo.findOneBy.mockResolvedValue(user);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(service.login(email, password)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if account not verified', async () => {
+      const email = 'test@example.com';
+      const password = 'password123';
+      const user = {
+        id: 'userId',
+        email,
+        password: 'hashedPassword',
+        isVerified: false,
+      };
+
+      mockUserRepo.findOneBy.mockResolvedValue(user);
+
+      await expect(service.login(email, password)).rejects.toThrow(BadRequestException);
     });
   });
 });
