@@ -44,20 +44,14 @@ A NestJS-based backend for an FX Trading App where users can trade currencies, i
 
 3. Set up environment variables. Create a `.env` file in the root directory:
    ```env
-   DATABASE_HOST=localhost
-   DATABASE_PORT=5432
-   DATABASE_USERNAME=your_username
-   DATABASE_PASSWORD=your_password
-   DATABASE_NAME=fx_trading_db
 
-   JWT_SECRET=your_jwt_secret
+DATABASE_URL=postgresql://postgres.jfykczizdmrahhrkolkp:[PASSWORD PLACEHOLDER]N@aws-1-eu-north-1.pooler.supabase.com:6543/postgres
+SUPPORTED_BALANCE_CURRENCIES=NGN,USD,EUR,GBP,CAD
+SUPPORTED_TO_CURRENCIES=USD,EUR,GBP,CAD
+JWT_SECRET=your_jwt_secret
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=   EMAIL_PASS=your_app_password
 
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USER=your_email@gmail.com
-   EMAIL_PASS=your_app_password
-
-   FX_API_KEY=your_exchangerate_api_key  # From https://www.exchangerate-api.com
    ```
 
 4. Run database migrations (if using TypeORM CLI):
