@@ -2,6 +2,8 @@
 
 A NestJS-based backend for an FX Trading App where users can trade currencies, including Naira (NGN) and other international currencies.
 
+live on:  https://forex-trading-app-api.onrender.com
+
 ## Features
 
 - **User Registration & Email Verification**: Users register with email and receive OTP for verification.
