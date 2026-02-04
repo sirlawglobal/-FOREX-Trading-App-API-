@@ -2,7 +2,7 @@
 
 A NestJS-based backend for an FX Trading App where users can trade currencies, including Naira (NGN) and other international currencies.
 
-live on:  https://forex-trading-app-api.onrender.com
+**Live on:** https://forex-trading-app-api.onrender.com
 
 ## Features
 
@@ -36,7 +36,7 @@ live on:  https://forex-trading-app-api.onrender.com
 1. Clone the repository:
    ```bash
    git clone <repo-url>
-   cd fx-tradding-app
+   cd fx-trading-app
    ```
 
 2. Install dependencies:
@@ -46,14 +46,13 @@ live on:  https://forex-trading-app-api.onrender.com
 
 3. Set up environment variables. Create a `.env` file in the root directory:
    ```env
-
-DATABASE_URL=postgresql://postgres.jfykczizdmrahhrkolkp:[PASSWORD PLACEHOLDER]N@aws-1-eu-north-1.pooler.supabase.com:6543/postgres
-SUPPORTED_BALANCE_CURRENCIES=NGN,USD,EUR,GBP,CAD
-SUPPORTED_TO_CURRENCIES=USD,EUR,GBP,CAD
-JWT_SECRET=your_jwt_secret
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=   EMAIL_PASS=your_app_password
-
+   DATABASE_URL=postgresql://postgres.jfykczizdmrahhrkolkp:[PASSWORD PLACEHOLDER]N@aws-1-eu-north-1.pooler.supabase.com:6543/postgres
+   SUPPORTED_BALANCE_CURRENCIES=NGN,USD,EUR,GBP,CAD
+   SUPPORTED_TO_CURRENCIES=USD,EUR,GBP,CAD
+   JWT_SECRET=your_jwt_secret
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASS=your_app_password
+   FX_API_KEY=your_fx_api_key
    ```
 
 4. Run database migrations (if using TypeORM CLI):
@@ -77,13 +76,62 @@ The app will run on `http://localhost:3000`. Swagger docs at `http://localhost:3
 ## Key Assumptions
 
 - Users start with 0 balance in all currencies.
-- FX rates are cached for 1 hour to reduce API calls.
+- FX rates are cached for 5 minutes to reduce API calls.
 - Supported currencies: NGN, USD, EUR, GBP, CAD.
 - Conversions use base currency (NGN) for cross-currency trades.
 - Email verification is required before trading.
 - Transactions are atomic to prevent race conditions.
 - Insufficient balance prevents conversions.
 - OTP expires in 5 minutes.
+
+## Architectural Data Flow
+
+### Overview
+The application follows a modular architecture with clear separation of concerns. Data flows through the following layers:
+
+1. **Client Request** → Controller → Service → Repository/Entity → Database
+2. **External API** (FX Rates) → Service → Cache → Client Response
+
+### Detailed Flow
+
+#### User Registration & Authentication Flow
+1. User sends registration request to `/auth/register`.
+2. `AuthController` validates input and calls `AuthService.register()`.
+3. `AuthService` creates user entity, generates OTP, seeds wallet balances, sends email.
+4. User verifies OTP via `/auth/verify`, receives JWT token.
+5. Subsequent requests use JWT for authentication via `AuthGuard`.
+
+#### Wallet Operations Flow
+1. Authenticated user requests wallet operations (e.g., `/wallet/convert`).
+2. `WalletController` validates request and calls `WalletService.convert()`.
+3. `WalletService` fetches FX rate from `FxService`, performs atomic transaction:
+   - Locks and updates source balance.
+   - Updates or creates destination balance.
+   - Logs transaction in `Transaction` entity.
+4. Response includes conversion details and transaction ID.
+
+#### FX Rate Fetching Flow
+1. `FxService` periodically fetches rates from exchangerate-api.com.
+2. Rates are cached in-memory (Map) for 5 minutes.
+3. Services request rates via `FxService.getRate()`, which returns cached or fresh data.
+4. Cached rates are filtered to supported currencies for API responses.
+
+#### Data Entities & Relationships
+- **User**: Central entity with email, password, verification status.
+  - One-to-Many: WalletBalance, Transaction.
+- **WalletBalance**: Per-currency balance per user (indexed for performance).
+- **Transaction**: Immutable log of all operations (funding, conversions).
+
+#### Security & Validation
+- JWT tokens validated on protected routes.
+- DTOs ensure input validation.
+- Atomic transactions prevent race conditions.
+- Bcrypt for password hashing, OTP hashing.
+
+#### Caching & Performance
+- FX rates cached in-memory; scalable to Redis.
+- Database indexes on user_id, currency for fast queries.
+- Pessimistic locking for balance updates.
 
 ## API Documentation
 
@@ -109,7 +157,7 @@ The app will run on `http://localhost:3000`. Swagger docs at `http://localhost:3
 
 ### Example Requests
 
-Register:
+**Register:**
 ```json
 POST /auth/register
 {
@@ -118,7 +166,7 @@ POST /auth/register
 }
 ```
 
-Verify:
+**Verify:**
 ```json
 POST /auth/verify
 {
@@ -127,7 +175,7 @@ POST /auth/verify
 }
 ```
 
-Fund Wallet:
+**Fund Wallet:**
 ```json
 POST /wallet/fund
 {
@@ -136,7 +184,7 @@ POST /wallet/fund
 }
 ```
 
-Convert:
+**Convert:**
 ```json
 POST /wallet/convert
 {
