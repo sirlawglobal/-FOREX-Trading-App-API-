@@ -161,7 +161,6 @@ The application follows a modular architecture with clear separation of concerns
 - `GET /admin/users/:id` - Get details of a specific user.
 - `GET /admin/transactions` - Get paginated list of all transactions.
 - `GET /admin/users/:userId/transactions` - Get transactions for a specific user.
-- `POST /admin/currencies` - Add or update a currency (placeholder).
 - `DELETE /admin/users/:id` - Delete a user.
 
 ### Example Requests
