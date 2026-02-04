@@ -1,0 +1,280 @@
+{
+  "info": {
+    "_postman_id": "692e721f-ff78-4e0b-b28b-a9d93bcf8767",
+    "name": "FX",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "31413564",
+    "_collection_link": "https://go.postman.co/collection/31413564-692e721f-ff78-4e0b-b28b-a9d93bcf8767?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "reg",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"akanjilawrence9999@gmail.com\",\r\n    \"password\": \"strongpass123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "verifyotp",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "resendotp",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "wallet",
+      "item": [
+        {
+          "name": "getwallet",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "fund wallet",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "fx",
+      "item": [
+        {
+          "name": "getRate",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "convert",
+      "item": [
+        {
+          "name": "convert",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkMzM1OGM4MC1iMGJjLTRjMGMtYjA2My0wZWI1NGQxMjVlNDEiLCJlbWFpbCI6ImFrYW5qaWxhd3JlbmNlOTk5OUBnbWFpbC5jb20iLCJpc1ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NzAxODY0NzcsImV4cCI6MTc3MDI3Mjg3N30.s3UYim70KxA5Z11pIQLkrOXh1-botaBuYMEXeY6pzR8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"fromCurrency\": \"NGN\", \"toCurrency\": \"USD\", \"amount\": 2000 }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/wallet/convert",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "wallet",
+                "convert"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "transaction",
+      "item": [
+        {
+          "name": "history",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "getAllUsers",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YmMwYzYzZi05YjQxLTQ5ZTYtYTgxYy0zOTVkZTQ2MjQ0YjkiLCJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlzVmVyaWZpZWQiOnRydWUsImlhdCI6MTc3MDI0MDQyOCwiZXhwIjoxNzcwMzI2ODI4fQ.7MEaP-TJNZHuMh6Z0if0k2cf0KiYLEWJWT0XHBhgcdk",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/admin/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "admin",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getUser",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YmMwYzYzZi05YjQxLTQ5ZTYtYTgxYy0zOTVkZTQ2MjQ0YjkiLCJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlzVmVyaWZpZWQiOnRydWUsImlhdCI6MTc3MDI0MDQyOCwiZXhwIjoxNzcwMzI2ODI4fQ.7MEaP-TJNZHuMh6Z0if0k2cf0KiYLEWJWT0XHBhgcdk",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/admin/users/093739d0-3c00-48db-9eed-c6c7a7d4de5c",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "admin",
+                "users",
+                "093739d0-3c00-48db-9eed-c6c7a7d4de5c"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getAllTransactions",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YmMwYzYzZi05YjQxLTQ5ZTYtYTgxYy0zOTVkZTQ2MjQ0YjkiLCJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlzVmVyaWZpZWQiOnRydWUsImlhdCI6MTc3MDI0MDQyOCwiZXhwIjoxNzcwMzI2ODI4fQ.7MEaP-TJNZHuMh6Z0if0k2cf0KiYLEWJWT0XHBhgcdk",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/admin/transactions",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "admin",
+                "transactions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getUserTransactions",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "DeleteUser",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -2,10 +2,11 @@ import { Controller, Get, Post, Delete, Param, Query, Body, UseGuards } from '@n
 import { AdminService } from './admin.service';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { AuthGuard } from '../auth/auth.guard';
 import { Role } from '../auth/roles.enum';
 
 @Controller('admin')
-@UseGuards(RolesGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
