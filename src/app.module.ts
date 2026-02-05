@@ -18,7 +18,7 @@ import { AdminModule } from './admin/admin.module';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.get<string>('DATABASE_URL'),
-        synchronize: true,
+        // synchronize: true,
         entities: [join(__dirname, '**/*.entity.{ts,js}')],
       }),
       inject: [ConfigService],
