@@ -1,41 +1,55 @@
+
 # FX Trading App Backend
 
-A NestJS-based backend for an FX Trading App where users can trade currencies, including Naira (NGN) and other international currencies.
+A NestJS-based backend for a foreign exchange (FX) trading application. Users can register, verify their email, fund wallets, view balances, convert currencies, trade with fees, and view transaction history. Admins have additional oversight capabilities.
 
-**Live on:** https://forex-trading-app-api.onrender.com
+**Live Demo:** https://forex-trading-app-api.onrender.com  
+<!-- **Swagger API Documentation:** https://forex-trading-app-api.onrender.com/api -->
 
 ## Features
 
-- **User Registration & Email Verification**: Users register with email and receive OTP for verification.
-- **Multi-Currency Wallet**: Supports balances in NGN, USD, EUR, GBP, etc.
-- **FX Rate Integration**: Fetches real-time rates from exchangerate-api.com, cached in-memory.
-- **Currency Conversion & Trading**: Convert/trade NGN ↔ other currencies using live rates.
-- **Transaction History**: Logs all funding, conversions, and trades.
-- **Security**: JWT authentication, input validation, atomic transactions, role-based access control (RBAC).
+- User registration with email + password
+- Email verification via OTP (expires in 5 minutes)
+- Multi-currency wallet (NGN, USD, EUR, GBP, CAD — configurable)
+- Real-time FX rates from exchangerate-api.com (cached 5 minutes)
+- Simple currency conversion (`/wallet/convert`) — no fee
+- Currency trading (`/wallet/trade`) with:
+  - 0.5% fee deducted from input amount
+  - Minimum trade amount of 50 units
+  - Different transaction type (`TRADE` vs `CONVERT`)
+  - Distinct success message and description
+- Transaction history with full audit trail
+- Role-Based Access Control (RBAC): USER vs ADMIN
+- Admin endpoints: view all users, all transactions, etc.
+- Security: JWT authentication, input validation, atomic transactions, bcrypt passwords, OTP hashing
+- Idempotency support via optional `idempotencyKey`
+- AMIN user is a user that is manually updated in the database
 
 ## Tech Stack
 
-- **Framework**: NestJS
-- **ORM**: TypeORM
-- **Database**: PostgreSQL (configurable to MySQL)
-- **Authentication**: JWT with Passport
-- **Email**: Nodemailer (Gmail SMTP)
-- **Caching**: In-memory cache for FX rates
-- **Testing**: Jest with unit and e2e tests
+- **Framework**: NestJS (TypeScript)
+- **Database/ORM**: PostgreSQL + TypeORM
+- **Authentication**: JWT + Passport
+- **Email**: Nodemailer (Gmail SMTP or alternative)
+- **Precision Math**: decimal.js
+- **Validation**: class-validator + class-transformer
+- **API Docs**: Swagger (@nestjs/swagger)
+- **Testing**: Jest (unit + e2e)
 
 ## Setup Instructions
 
 ### Prerequisites
 
-- Node.js (v18+)
-- PostgreSQL (or MySQL)
-- Gmail account for SMTP (or configure another provider)
+- Node.js ≥ 18
+- PostgreSQL (local, Supabase, Neon, etc.)
+- Gmail account with App Password (for SMTP) or alternative provider
+- Free API key from https://www.exchangerate-api.com
 
 ### Installation
 
 1. Clone the repository:
    ```bash
-   git clone <repo-url>
+   git clone <your-repo-url>
    cd fx-trading-app
    ```
 
@@ -44,197 +58,135 @@ A NestJS-based backend for an FX Trading App where users can trade currencies, i
    npm install
    ```
 
-3. Set up environment variables. Create a `.env` file in the root directory:
+3. Create `.env` file in the root:
    ```env
-   DATABASE_URL=postgresql://postgres.jfykczizdmrahhrkolkp:[PASSWORD PLACEHOLDER]N@aws-1-eu-north-1.pooler.supabase.com:6543/postgres
-   SUPPORTED_BALANCE_CURRENCIES=NGN,USD,EUR,GBP,CAD
-   SUPPORTED_TO_CURRENCIES=USD,EUR,GBP,CAD
-   JWT_SECRET=your_jwt_secret
-   SMTP_USER=your_email@gmail.com
-   SMTP_PASS=your_app_password
-   FX_API_KEY=your_fx_api_key
+   # Database (example: Supabase)
+   DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.your-project-ref.supabase.co:5432/postgres
+
+   # JWT
+   JWT_SECRET=your-very-long-random-secret-here-change-this
+
+   # Email (Gmail App Password recommended)
+   SMTP_USER=your.email@gmail.com
+   SMTP_PASS=your-16-char-app-password
+
+   # FX Rates
+   FX_API_KEY=your_exchangerate_api_key_here
+
+   # Supported currencies (must include NGN as base)
+   SUPPORTED_CURRENCIES=NGN,USD,EUR,GBP,CAD
+
+   # Trading fee (0.005 = 0.5%)
+   TRADE_FEE_RATE=0.005
    ```
 
-4. Run database migrations (if using TypeORM CLI):
+4. Run migrations (creates tables):
    ```bash
-   npm run build
-   npx typeorm migration:run
+   npm run typeorm migration:run
+   # or if using synchronize: true in dev → just start the app
    ```
 
 5. Start the application:
    ```bash
-   # Development
+   # Development (recommended)
    npm run start:dev
 
-   # Production
+   # Production build & run
    npm run build
    npm run start:prod
    ```
 
-The app will run on `http://localhost:3000`. Swagger docs at `http://localhost:3000/api`.
+App runs on `http://localhost:3000`  
+Swagger docs: `http://localhost:3000/api`
 
 ## Key Assumptions
 
 - Users start with 0 balance in all currencies.
 - FX rates are cached for 5 minutes to reduce API calls.
-- Supported currencies: NGN, USD, EUR, GBP, CAD.
-- Conversions use base currency (NGN) for cross-currency trades.
+- Supported currencies: NGN (base), USD, EUR, GBP, CAD.
+- Conversions/trades use base currency (NGN) for cross-currency trades.
 - Email verification is required before trading.
 - Transactions are atomic to prevent race conditions.
-- Insufficient balance prevents conversions.
+- Insufficient balance prevents conversions/trades.
 - OTP expires in 5 minutes.
 
-## Architectural Data Flow
+## API Endpoints
 
-### Overview
-The application follows a modular architecture with clear separation of concerns. Data flows through the following layers:
+### Public (no authentication)
 
-1. **Client Request** → Controller → Service → Repository/Entity → Database
-2. **External API** (FX Rates) → Service → Cache → Client Response
+- `POST /auth/register` — Register + send OTP
+- `POST /auth/verify` — Verify OTP
+- `POST /auth/resend-otp` — Resend OTP
+- `POST /auth/login` — Get JWT token
 
-### Detailed Flow
+### Protected (USER + ADMIN roles)
 
-#### User Registration & Authentication Flow
-1. User sends registration request to `/auth/register`.
-2. `AuthController` validates input and calls `AuthService.register()`.
-3. `AuthService` creates user entity, generates OTP, seeds wallet balances, sends email.
-4. User verifies OTP via `/auth/verify`, receives JWT token.
-5. Subsequent requests use JWT for authentication via `AuthGuard`.
+- `GET /wallet` — Get all balances (`?currency=USD` optional)
+- `POST /wallet/fund` — Fund wallet (NGN only for now)
+- `POST /wallet/convert` — Simple currency conversion (no fee)
+- `POST /wallet/trade` — Trade with 0.5% fee + min 50
+- `GET /wallet/transactions` — User's transaction history
+- `GET /fx/rates` — Current rates for supported pairs
 
-#### Wallet Operations Flow
-1. Authenticated user requests wallet operations (e.g., `/wallet/convert`).
-2. `WalletController` validates request and calls `WalletService.convert()`.
-3. `WalletService` fetches FX rate from `FxService`, performs atomic transaction:
-   - Locks and updates source balance.
-   - Updates or creates destination balance.
-   - Logs transaction in `Transaction` entity.
-4. Response includes conversion details and transaction ID.
+### Admin Only (role: ADMIN)
 
-#### FX Rate Fetching Flow
-1. `FxService` periodically fetches rates from exchangerate-api.com.
-2. Rates are cached in-memory (Map) for 5 minutes.
-3. Services request rates via `FxService.getRate()`, which returns cached or fresh data.
-4. Cached rates are filtered to supported currencies for API responses.
+- `GET /admin/users` — List all users
+- `GET /admin/users/:id` — Get user details
+- `GET /admin/transactions` — List all transactions
+- `GET /admin/users/:userId/transactions` — Transactions for one user
+- `POST /admin/currencies` — Manage supported currencies (future)
+- `DELETE /admin/users/:id` — Delete/ban user (future)
 
-#### Data Entities & Relationships
-- **User**: Central entity with email, password, verification status.
-  - One-to-Many: WalletBalance, Transaction.
-- **WalletBalance**: Per-currency balance per user (indexed for performance).
-- **Transaction**: Immutable log of all operations (funding, conversions).
+## Conversion vs Trade – Key Differences
 
-#### Security & Validation
-- JWT tokens validated on protected routes.
-- DTOs ensure input validation.
-- Atomic transactions prevent race conditions.
-- Bcrypt for password hashing, OTP hashing.
+| Feature                     | /wallet/convert                  | /wallet/trade                              |
+|-----------------------------|-----------------------------------|---------------------------------------------|
+| Fee                         | None                             | 0.5% (deducted from input amount)           |
+| Minimum amount              | 0.01                             | 50 units                                    |
+| Transaction type (DB)       | `CONVERT`                        | `TRADE`                                     |
+| Success message             | "Conversion successful"          | "Trade executed successfully"               |
+| Description prefix          | "Converted ..."                  | "Traded ..."                                |
+| Response fields             | Basic                            | Includes `grossFromAmount`, `fee`, `netFromAmount` |
 
-#### Caching & Performance
-- FX rates cached in-memory; scalable to Redis.
-- Database indexes on user_id, currency for fast queries.
-- Pessimistic locking for balance updates.
-
-## API Documentation
-
-### Authentication Endpoints
-
-- `POST /auth/register` - Register user and send OTP email.
-- `POST /auth/verify` - Verify OTP and activate account.
-- `POST /auth/resend-otp` - Resend OTP.
-- `POST /auth/login` - Login and get JWT token.
-- `POST /auth/logout` - Logout (client-side token removal).
-
-### Wallet Endpoints
-
-- `GET /wallet` - Get all wallet balances (optional ?currency=NGN filter).
-- `POST /wallet/fund` - Fund wallet in NGN or other currencies.
-- `POST /wallet/convert` - Convert between currencies.
-- `POST /wallet/trade` - Trade NGN with other currencies (alias for convert).
-- `GET /wallet/transactions` - Get transaction history.
-
-### FX Endpoints
-
-- `GET /fx/rates` - Get current FX rates (filtered to supported pairs).
-
-### Admin Endpoints (Requires ADMIN role)
-
-- `GET /admin/users` - Get paginated list of users.
-- `GET /admin/users/:id` - Get details of a specific user.
-- `GET /admin/transactions` - Get paginated list of all transactions.
-- `GET /admin/users/:userId/transactions` - Get transactions for a specific user.
-- `DELETE /admin/users/:id` - Delete a user.
-
-### Example Requests
-
-**Register:**
-```json
-POST /auth/register
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Verify:**
-```json
-POST /auth/verify
-{
-  "email": "user@example.com",
-  "otp": "123456"
-}
-```
-
-**Fund Wallet:**
-```json
-POST /wallet/fund
-{
-  "currency": "NGN",
-  "amount": 10000
-}
-```
-
-**Convert:**
-```json
-POST /wallet/convert
-{
-  "fromCurrency": "NGN",
-  "toCurrency": "USD",
-  "amount": 1000
-}
-```
+**Money flow example (trade: 55 CAD → NGN)**:
+- Deduct full **55 CAD** from CAD balance
+- Fee: **0.275 CAD** (0.5%) — removed/lost from CAD
+- Convert only **54.725 CAD** at current rate
+- Add ~**55,389.676 NGN** to NGN balance
+- Fee is **not** transferred — platform keeps it (simple revenue model)
 
 ## Architectural Decisions
 
-- **Modular Structure**: Separate modules for Auth, Wallet, FX.
-- **Entity Design**: User, WalletBalance, Transaction entities with TypeORM.
-- **Service Layer**: Business logic in services, controllers handle HTTP.
-- **Validation**: Class-validator for DTOs.
-- **Error Handling**: Global exception filters.
-- **Caching**: In-memory for FX rates; Redis optional for scalability.
-- **Security**: Bcrypt for passwords, JWT for auth, guards for protected routes.
-- **Database**: PostgreSQL for transactions; indexes on user_id, currency.
-- **Scalability**: Stateless design, easy to add microservices or Redis.
+- **Modular Structure**: Separate modules for Auth, Wallet, FX, Admin
+- **Entity Design**: User, WalletBalance, Transaction entities with TypeORM
+- **Service Layer**: Business logic in services, controllers handle HTTP
+- **Validation**: Class-validator + class-transformer for DTOs
+- **Error Handling**: Global exception filters + try/catch in transactions
+- **Caching**: In-memory for FX rates; Redis-ready
+- **Security**: Bcrypt passwords, JWT auth, RBAC guards, atomic transactions
+- **Database**: PostgreSQL with indexes on `userId`, `createdAt`, `currency`
+- **Scalability**: Stateless design, easy to add Redis, rate limiting, microservices
 
 ## Running Tests
 
 ```bash
-# All tests
+# Unit + integration
 npm test
 
-# E2E tests
+# End-to-end
 npm run test:e2e
 
-# Coverage
+# Coverage report
 npm run test:cov
 ```
 
-All 21 tests pass, covering services, controllers, and auth.
 
-## Deployment
+## Future Improvements
 
-- Use Docker for containerization.
-- Configure environment variables for production.
-- Set up database backups and monitoring.
-- For high traffic, add Redis caching and load balancing.
-
-
+- Real fee wallet / accounting system
+- Slippage tolerance & limit orders
+- KYC / identity verification
+- WebSocket live rate updates
+- Mobile push/email notifications
+- Currency management UI for admins
 
