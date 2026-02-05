@@ -275,6 +275,45 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Trade",
+      "item": [
+        {
+          "name": "Trade",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkMzM1OGM4MC1iMGJjLTRjMGMtYjA2My0wZWI1NGQxMjVlNDEiLCJlbWFpbCI6ImFrYW5qaWxhd3JlbmNlOTk5OUBnbWFpbC5jb20iLCJpc1ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NzAxODY0NzcsImV4cCI6MTc3MDI3Mjg3N30.s3UYim70KxA5Z11pIQLkrOXh1-botaBuYMEXeY6pzR8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"fromCurrency\": \"NGN\", \"toCurrency\": \"USD\", \"amount\": 2000 }"
+            },
+            "url": {
+              "raw": "http://localhost:3000/wallet/trade",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "wallet",
+                "trade"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
